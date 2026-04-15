@@ -36,7 +36,7 @@ bool SATSolver::DIMACS(std::string& nameFile) {
     usedVars = std::vector<short int>(numVars + 1);
     clauses = std::vector<Clause>(numClauses);
     vars = std::vector<VarInfo>(numVars + 1);
-    clauseIsTrue = std::vector<bool>(numClauses);
+    clauseIsTrue = std::vector<int>(numClauses);
     varsLeft = std::vector<int>(numClauses);
 
     file >> std::ws;
@@ -66,4 +66,5 @@ bool SATSolver::DIMACS(std::string& nameFile) {
     }
     return true;
 }
+
 
