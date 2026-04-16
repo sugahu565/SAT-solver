@@ -1,4 +1,5 @@
 #include "SATSolver.hpp"
+#include <filesystem>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -67,4 +68,56 @@ bool SATSolver::DIMACS(std::string& nameFile) {
     return true;
 }
 
+/*
+1. В цикле кручусь, пока стек не пустой
+
+
+
+*/
+
+bool SATSolver::solve() {
+    do {
+        Var curVar = findNextVar();
+        int ok = addVar(curVar);
+
+        if (ok) {
+            if (numZeroClauses != 0)
+                continue;
+            return true;
+        }
+
+        backtrack();
+
+        if (!curVar.canChange) {
+            backtrack();
+            continue;
+        }
+        curVar.canChange = 0; // пред вариант не подошёл
+        curVar.var = -curVar.var;
+
+        ok = addVar(curVar);
+        if (ok) {
+            if (numZeroClauses != 0)
+                continue;
+            return true;
+        }
+
+        backtrack();
+        curVar = findNextVar();
+    } while (lastVal.size() > 0);
+
+    return false;
+}
+
+bool SATSolver::addVar(Var x) {
+    return true;
+}
+
+void SATSolver::backtrack() {
+    return;
+}
+
+Var SATSolver::findNextVar() {
+    return Var(1, 1);
+}
 

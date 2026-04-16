@@ -19,3 +19,8 @@ struct VarInfo {
     std::vector<int> negOccur;
 };
 
+struct Var {
+    int var;
+    int canChange;
+};
+
