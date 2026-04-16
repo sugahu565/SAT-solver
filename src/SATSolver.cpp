@@ -88,9 +88,12 @@ bool SATSolver::solve() {
 
         backtrack();
 
-        if (!curVar.canChange) {
+        while (!curVar.canChange) { // откат до той переменной, которую можно поменять
             backtrack();
-            continue;
+            if (lastVal.size() == 0)
+                return false;
+            curVar = lastVal.top();
+            lastVal.pop();
         }
         curVar.canChange = 0; // пред вариант не подошёл
         curVar.var = -curVar.var;
@@ -102,7 +105,13 @@ bool SATSolver::solve() {
             return true;
         }
 
-        backtrack();
+        while (!curVar.canChange) {
+            backtrack();
+            if (lastVal.size() == 0)
+                return false;
+            curVar = lastVal.top();
+            lastVal.pop();
+        }
         curVar = findNextVar();
     } while (lastVal.size() > 0);
 
