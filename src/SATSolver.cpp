@@ -68,51 +68,37 @@ bool SATSolver::DIMACS(std::string& nameFile) {
     return true;
 }
 
-/*
-1. В цикле кручусь, пока стек не пустой
-
-
-
-*/
 
 bool SATSolver::solve() {
+    Var curVar = findNextVar();
     do {
-        Var curVar = findNextVar();
         int ok = addVar(curVar);
 
         if (ok) {
-            if (numZeroClauses != 0)
+            if (numZeroClauses != 0) {
+                curVar = findNextVar();
                 continue;
+            }
             return true;
         }
 
         backtrack();
 
+        if (curVar.canChange) {
+            curVar.canChange = 0;
+            curVar.var = -curVar.var;
+            continue;
+        }
+
         while (!curVar.canChange) { // откат до той переменной, которую можно поменять
-            backtrack();
             if (lastVal.size() == 0)
                 return false;
             curVar = lastVal.top();
-            lastVal.pop();
+            backtrack();
         }
-        curVar.canChange = 0; // пред вариант не подошёл
+        // откатилась
+        curVar.canChange = 0;
         curVar.var = -curVar.var;
-
-        ok = addVar(curVar);
-        if (ok) {
-            if (numZeroClauses != 0)
-                continue;
-            return true;
-        }
-
-        while (!curVar.canChange) {
-            backtrack();
-            if (lastVal.size() == 0)
-                return false;
-            curVar = lastVal.top();
-            lastVal.pop();
-        }
-        curVar = findNextVar();
     } while (lastVal.size() > 0);
 
     return false;
@@ -127,6 +113,20 @@ void SATSolver::backtrack() {
 }
 
 Var SATSolver::findNextVar() {
-    return Var(1, 1);
+    Var needReturn;
+    if (single.size()) {
+        needReturn.var = single.back();
+        needReturn.canChange = 0;
+        return needReturn;
+    }
+    for (int i = 1; i <= numVars; ++i) {
+        if (usedVars[i] == 0) {
+            needReturn.var = i;
+            needReturn.canChange = 1;
+            return needReturn;
+        }
+    }
+    needReturn.var = -1; // в теории, до сюда не дойдёт
+    return needReturn;
 }
 
