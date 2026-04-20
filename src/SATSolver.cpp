@@ -67,6 +67,7 @@ bool SATSolver::DIMACS(std::string& nameFile) {
         }
         file >> std::ws;
     }
+    numZeroClauses = numClauses;
     return true;
 }
 
