@@ -31,7 +31,7 @@ class SATSolver { //структура для решения одной зада
         bool addVar(Var x); // присваиваю переменной значение (ОДНОЙ), внутри обновляю все вектора и тд и смотрю на противоречия
         void backtrack(); // удаляю значение переменной, меняю все вектора и тд
         Var getNextVar(); // находит след переменные для присвоения (внутри проверка на непустой список единичных, иначе тупо ищу)
-        int findNotUsedVar(Clause curr);
+        int findNotUsedVar(const Clause& curr);
     public:
         SATSolver();
         bool DIMACS(std::string& nameFile);

@@ -7,12 +7,6 @@
 SATSolver::SATSolver() {
     numVars = 0;
     numClauses = 0;
-    std::vector<short int> usedVars; 
-    std::vector<Clause> clauses; 
-    std::vector<VarInfo> varsInfo;
-    std::stack<int> single;
-    std::stack<int> lastVar;
-
     solutionExist = 0; 
 }
 
@@ -190,7 +184,7 @@ Var SATSolver::getNextVar() {
     return needReturn;
 }
 
-int SATSolver::findNotUsedVar(Clause curr) {
+int SATSolver::findNotUsedVar(const Clause& curr) {
     for (auto c: curr.vars) {
         if (usedVars[abs(c)] == 0)
             return c;
