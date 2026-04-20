@@ -58,11 +58,11 @@ bool SATSolver::DIMACS(std::string& nameFile) {
             varsLeft[curClause]++;
 
             if (value > 0) {
-                varsInfo[curClause].numPosOccur++;
-                varsInfo[curClause].posOccur.push_back(curClause);
+                varsInfo[abs(value)].numPosOccur++;
+                varsInfo[abs(value)].posOccur.push_back(curClause);
             } else {
-                varsInfo[curClause].numNegOccur++;
-                varsInfo[curClause].negOccur.push_back(curClause);
+                varsInfo[abs(value)].numNegOccur++;
+                varsInfo[abs(value)].negOccur.push_back(curClause);
             }
         }
         file >> std::ws;
