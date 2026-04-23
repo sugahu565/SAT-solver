@@ -37,7 +37,7 @@ bool SATSolver::DIMACS(std::string& nameFile) {
     varsLeft = std::vector<int>(numClauses);
 
     file >> std::ws;
-    while (file.peek() != EOF) {
+    while (file.peek() != EOF && file.peek() != '%') {
         if (file.peek() == 'c') {
             getline(file, comment);
             continue;
