@@ -1,4 +1,5 @@
 #include "SATSolver.hpp"
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -7,7 +8,10 @@
 SATSolver::SATSolver() {
     numVars = 0;
     numClauses = 0;
-    solutionExist = 0; 
+    solutionExist = 0;
+    pows = std::vector<double>(128);
+    for (int i = 0; i < 128; i++)
+        pows[i] = std::pow(2.0, -i);
 }
 
 bool SATSolver::DIMACS(std::string& nameFile) {
@@ -67,13 +71,13 @@ bool SATSolver::DIMACS(std::string& nameFile) {
 
 
 bool SATSolver::solve() {
-    Var curVar = getNextVar();
+    Var curVar = getNextVarJWH();
     do {
         int ok = addVar(curVar);
 
         if (ok) {
             if (numZeroClauses != 0) {
-                curVar = getNextVar();
+                curVar = getNextVarJWH();
                 continue;
             }
             return true;
@@ -181,6 +185,52 @@ Var SATSolver::getNextVar() {
         }
     }
     needReturn.var = -1; // в теории, до сюда не дойдёт
+    return needReturn;
+}
+
+Var SATSolver::getNextVarJWH() {
+    Var needReturn;
+    while (single.size()) {
+        if (usedVars[abs(single.top())] != 0) {
+            single.pop();
+        } else {
+            needReturn.var = single.top();
+            needReturn.canChange = 0;
+            single.pop();
+            return needReturn;
+        }
+    }
+    double bestWeight = -1;
+    for (int i = 1; i <= numVars; ++i) {
+        if (usedVars[i] != 0)
+            continue;
+
+        double scorePos = 0.0;
+        double scoreNeg = 0.0;
+
+
+        for (auto c: varsInfo[i].posOccur) {
+            if (clauseIsTrue[c] == 0) {
+                int len = varsLeft[c];
+                double weight = (len < 128) ? pows[len] : 0.0;
+                scorePos += weight;
+            }
+        }
+
+        for (auto c: varsInfo[i].negOccur) {
+            if (clauseIsTrue[c] == 0) {
+                int len = varsLeft[c];
+                double weight = (len < 128) ? pows[len] : 0.0;
+                scoreNeg += weight;
+            }
+        }
+
+        if (scoreNeg + scorePos > bestWeight) {
+            needReturn.var = scorePos > scoreNeg ? i : -i;
+            needReturn.canChange = 1;
+            bestWeight = scorePos + scoreNeg;
+        }
+    }
     return needReturn;
 }
 
