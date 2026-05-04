@@ -2,7 +2,7 @@
 #include<vector>
 
 struct Solution { //для вывода ответа
-    bool solutionExist = 0;
+    bool solutionExist = false;
     std::vector<int> variables;
 };
 

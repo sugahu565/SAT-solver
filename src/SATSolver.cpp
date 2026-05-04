@@ -8,13 +8,14 @@
 SATSolver::SATSolver() {
     numVars = 0;
     numClauses = 0;
+    numZeroClauses = 0;
     solutionExist = 0;
     pows = std::vector<double>(128);
     for (int i = 0; i < 128; i++)
         pows[i] = std::pow(2.0, -i);
 }
 
-bool SATSolver::DIMACS(std::string& nameFile) {
+bool SATSolver::dimacs(std::string& nameFile) {
     std::ifstream file(nameFile);
     std::string comment;
 
@@ -73,7 +74,7 @@ bool SATSolver::DIMACS(std::string& nameFile) {
 bool SATSolver::solve() {
     Var curVar = getNextVarJWH();
     do {
-        int ok = addVar(curVar);
+        bool ok = addVar(curVar);
 
         if (ok) {
             if (numZeroClauses != 0) {
@@ -92,7 +93,7 @@ bool SATSolver::solve() {
         }
 
         while (!curVar.canChange) { // откат до той переменной, которую можно поменять
-            if (lastVar.size() == 0)
+            if (lastVar.empty())
                 return false;
             curVar = lastVar.top();
             backtrack();
@@ -100,7 +101,7 @@ bool SATSolver::solve() {
         // откатилась
         curVar.canChange = 0;
         curVar.var = -curVar.var;
-    } while (lastVar.size() > 0);
+    } while (!lastVar.empty());
 
     return false;
 }
@@ -166,8 +167,8 @@ void SATSolver::backtrack() {
 }
 
 Var SATSolver::getNextVar() {
-    Var needReturn;
-    while (single.size()) {
+    Var needReturn{0, 0};
+    while (!single.empty()) {
         if (usedVars[abs(single.top())] != 0) {
             single.pop();
         } else {
@@ -189,8 +190,8 @@ Var SATSolver::getNextVar() {
 }
 
 Var SATSolver::getNextVarJWH() {
-    Var needReturn;
-    while (single.size()) {
+    Var needReturn{0, 0};
+    while (!single.empty()) {
         if (usedVars[abs(single.top())] != 0) {
             single.pop();
         } else {

@@ -36,7 +36,7 @@ class SATSolver { //структура для решения одной зада
         int findNotUsedVar(const Clause& curr);
     public:
         SATSolver();
-        bool DIMACS(std::string& nameFile);
+        bool dimacs(std::string& nameFile);
         bool solve();
         Solution getSolution();
 };

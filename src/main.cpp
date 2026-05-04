@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
     std::string nameFile = argv[1];
     SATSolver solver;
 
-    if (!solver.DIMACS(nameFile)) {
+    if (!solver.dimacs(nameFile)) {
         std::cout << "Couldn't read or parse " << nameFile << '\n';
         return 1;
     }
