@@ -1,0 +1,24 @@
+name: Build and lint
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build-and-lint:
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: dnf install -y clang-tools-extra cmake gcc-c++ findutils
+      - name: Check format
+        run: find . -path ./build -prune -o -type f -name '*.[ch]' -print | xargs clang-format --style=file --dry-run -Werror
+      - name: Configure
+        run: cmake . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      - name: Build
+        run: cmake --build build
+      - name: Lint
+        run: run-clang-tidy -p build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
