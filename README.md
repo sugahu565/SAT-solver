@@ -26,6 +26,6 @@ make lint
 
 Очистка папки build:
 ```bash
-make clear
+make clean
 ```
 
