@@ -13,6 +13,7 @@
 ```bash
 make build 
 ```
+Исполняемые файлы лежат в build/bin/
 
 Запуск тестов: 
 ```bash
@@ -26,6 +27,5 @@ make lint
 
 Очистка папки build:
 ```bash
-make clean
+make clean 
 ```
-
