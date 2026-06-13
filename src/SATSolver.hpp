@@ -36,10 +36,10 @@ class SATSolver { // базовый класс для решения одной 
         SATSolver();
         virtual ~SATSolver() = default;
         bool dimacs(std::string& nameFile);
-        Solution getSolution();
+        [[nodiscard]] Solution getSolution() const;
 
         virtual bool solve() = 0; // Чисто виртуальный метод для запуска решателя
-        virtual const char* heuristicName() const = 0;
+        [[nodiscard]] virtual const char* heuristicName() const = 0;
 };
 
 class SATSolverNaive : public SATSolver {
@@ -48,7 +48,7 @@ class SATSolverNaive : public SATSolver {
 
     public:
         bool solve() override;
-        const char* heuristicName() const override { return "naive"; }
+        [[nodiscard]] const char* heuristicName() const override { return "naive"; }
 };
 
 class SATSolverJWH : public SATSolver {
@@ -65,5 +65,5 @@ class SATSolverJWH : public SATSolver {
     public:
         SATSolverJWH();
         bool solve() override;
-        const char* heuristicName() const override { return "jwh"; }
+        [[nodiscard]] const char* heuristicName() const override { return "jwh"; }
 };

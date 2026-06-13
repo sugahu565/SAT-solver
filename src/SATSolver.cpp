@@ -12,7 +12,7 @@ SATSolver::SATSolver() {
     solutionExist = 0;
 }
 
-Solution SATSolver::getSolution() {
+Solution SATSolver::getSolution() const {
     Solution s;
     s.solutionExist = solutionExist;
     // Dummy return, actual variable assignment extraction is omitted 
@@ -305,11 +305,11 @@ bool SATSolverJWH::addVar(Var x) {
             // Клауза стала удовлетворенной, вычитаем её вес из свободных переменных
             int len = varsLeft[c];
             double w = (len < 128) ? pows[len] : 0.0;
-            for (int v_in_c : clauses[c].vars) {
-                int abs_v = abs(v_in_c);
-                if (usedVars[abs_v] == 0) {
-                    if (v_in_c > 0) weightPos[abs_v] -= w;
-                    else            weightNeg[abs_v] -= w;
+            for (int vInC : clauses[c].vars) {
+                int absV = abs(vInC);
+                if (usedVars[absV] == 0) {
+                    if (vInC > 0) weightPos[absV] -= w;
+                    else          weightNeg[absV] -= w;
                 }
             }
         }
@@ -325,11 +325,11 @@ bool SATSolverJWH::addVar(Var x) {
             double diff = 0.0;
             if (len < 127) diff = pows[len] - pows[len + 1];
             if (diff > 0.0) {
-                for (int v_in_c : clauses[c].vars) {
-                    int abs_v = abs(v_in_c);
-                    if (usedVars[abs_v] == 0) {
-                        if (v_in_c > 0) weightPos[abs_v] += diff;
-                        else            weightNeg[abs_v] += diff;
+                for (int vInC : clauses[c].vars) {
+                    int absV = abs(vInC);
+                    if (usedVars[absV] == 0) {
+                        if (vInC > 0) weightPos[absV] += diff;
+                        else          weightNeg[absV] += diff;
                     }
                 }
             }
@@ -370,11 +370,11 @@ void SATSolverJWH::backtrack() {
             // Клауза снова стала неудовлетворенной, возвращаем её вес
             int len = varsLeft[c];
             double w = (len < 128) ? pows[len] : 0.0;
-            for (int v_in_c : clauses[c].vars) {
-                int abs_v = abs(v_in_c);
-                if (usedVars[abs_v] == 0) {
-                    if (v_in_c > 0) weightPos[abs_v] += w;
-                    else            weightNeg[abs_v] += w;
+            for (int vInC : clauses[c].vars) {
+                int absV = abs(vInC);
+                if (usedVars[absV] == 0) {
+                    if (vInC > 0) weightPos[absV] += w;
+                    else          weightNeg[absV] += w;
                 }
             }
         }
@@ -389,11 +389,11 @@ void SATSolverJWH::backtrack() {
             double diff = 0.0;
             if (len < 127) diff = pows[len] - pows[len + 1];
             if (diff > 0.0) {
-                for (int v_in_c : clauses[c].vars) {
-                    int abs_v = abs(v_in_c);
-                    if (usedVars[abs_v] == 0) {
-                        if (v_in_c > 0) weightPos[abs_v] -= diff;
-                        else            weightNeg[abs_v] -= diff;
+                for (int vInC : clauses[c].vars) {
+                    int absV = abs(vInC);
+                    if (usedVars[absV] == 0) {
+                        if (vInC > 0) weightPos[absV] -= diff;
+                        else          weightNeg[absV] -= diff;
                     }
                 }
             }

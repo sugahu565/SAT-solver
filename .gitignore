@@ -10,6 +10,19 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
+build/
+.cache/
+
+# Generated benchmark and report artifacts
+results/
+resultsJWH/
+*.tex
+*.log
+*.out
+*.aux
+*.pdf
+!report.pdf
+report2.
 
 # CLion
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can

@@ -1,13 +1,35 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [ -z "$1" ]; then
+set -euo pipefail
+
+ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+SOLVER="$ROOT_DIR/build/bin/solver"
+RESULTS_DIR="$ROOT_DIR/results"
+
+if [ "$#" -ne 1 ]; then
     echo "Ошибка: Укажите путь к папке с датасетом."
     echo "Использование: ./measure_all.sh <путь_к_папке>"
     exit 1
 fi
 
-DIR=$1
+DIR=$(realpath "$1")
 DIR_NAME=$(basename "$DIR")
+
+if [ ! -x "$SOLVER" ]; then
+    echo "Ошибка: Исполняемый файл $SOLVER не найден. Сначала выполните make build."
+    exit 1
+fi
+
+if ! command -v hyperfine > /dev/null; then
+    echo "Ошибка: Для замеров требуется hyperfine."
+    exit 1
+fi
+
+CNF_FILES=("$DIR"/*.cnf)
+if [ ! -e "${CNF_FILES[0]}" ]; then
+    echo "В папке $DIR не найдено файлов с расширением .cnf"
+    exit 1
+fi
 
 echo "=== Настройка CPU (может потребоваться пароль sudo) ==="
 ORIGINAL_GOV=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor) #текущий режим
@@ -44,18 +66,8 @@ restore_cpu() {
 trap restore_cpu EXIT
 # --------------------------------------
 
-mkdir -p results
-OUTPUT_FILE="results/results_${DIR_NAME}.txt"
-> "$OUTPUT_FILE"
-
-CNF_FILES=("$DIR"/*.cnf)
-if [ ! -e "${CNF_FILES[0]}" ]; then
-    echo "В папке $DIR не найдено файлов с расширением .cnf"
-    exit 1
-fi
-
-NAIVE_HEURISTIC=$(./build/bin/solver --print-heuristic)
-JWH_HEURISTIC=$(./build/bin/solver -jwh --print-heuristic)
+NAIVE_HEURISTIC=$("$SOLVER" --print-heuristic)
+JWH_HEURISTIC=$("$SOLVER" -jwh --print-heuristic)
 if [ "$NAIVE_HEURISTIC" != "naive" ] || [ "$JWH_HEURISTIC" != "jwh" ]; then
     echo "Ошибка: исполняемый файл не выбрал ожидаемые эвристики."
     echo "naive: $NAIVE_HEURISTIC, jwh: $JWH_HEURISTIC"
@@ -63,14 +75,13 @@ if [ "$NAIVE_HEURISTIC" != "naive" ] || [ "$JWH_HEURISTIC" != "jwh" ]; then
 fi
 echo "Проверка эвристик: naive и jwh выбраны корректно."
 
-# --- 3. ОСНОВНОЙ ЦИКЛ ЗАМЕРОВ ---
-mkdir -p results
+mkdir -p "$RESULTS_DIR"
 echo "=== Запуск бенчмарка: $DIR_NAME (30 прогонов всей папки) ==="
 
 hyperfine --warmup 1 --runs 30 \
-    --export-markdown "results/bench_results_${DIR_NAME}.md" \
-    --export-json "results/bench_results_${DIR_NAME}.json" \
-    "./build/bin/solver \"$DIR\"/*.cnf > /dev/null" \
-    "./build/bin/solver -jwh \"$DIR\"/*.cnf > /dev/null"
+    --export-markdown "$RESULTS_DIR/bench_results_${DIR_NAME}.md" \
+    --export-json "$RESULTS_DIR/bench_results_${DIR_NAME}.json" \
+    "\"$SOLVER\" \"$DIR\"/*.cnf > /dev/null" \
+    "\"$SOLVER\" -jwh \"$DIR\"/*.cnf > /dev/null"
 
 echo "=== Замеры завершены! ==="

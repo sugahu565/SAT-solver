@@ -2,10 +2,10 @@ BUILD_DIR = build
 CXX = g++
 CMAKE = cmake
 
-all: format build lint test
+all: build lint test
 
 build:
-	$(CMAKE) . -B $(BUILD_DIR) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+	$(CMAKE) . -B $(BUILD_DIR) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Release
 	$(CMAKE) --build $(BUILD_DIR)
 
 lint:
@@ -17,3 +17,4 @@ test:
 clean:
 	rm -rf $(BUILD_DIR)
 
+.PHONY: build lint test clean
