@@ -1,43 +1,61 @@
 #pragma once
 
 #include "structures.hpp"
-#include<vector>
-#include<string>
-#include<stack>
+#include <vector>
+#include <string>
+#include <stack>
+#include <cmath>
 
-class SATSolver { //структура для решения одной задачи
-    private:
+class SATSolver { // базовый класс для решения одной задачи
+    protected:
         // Объекты, которые не меняются внутри solve
         int numVars;
         int numClauses;
 
         std::vector<Clause> clauses; // все клозы
         std::vector<VarInfo> varsInfo; // инфа про каждую переменную - где лежит в негативном и позитивном виде
-        std::vector<double> pows; // 2^(-i) для эвристики
 
         // Объекты, которые меняются внутри solve
-
         std::vector<int> clauseIsTrue; // какие клозы уже удовлетворены и скольким кол-вом переменных
         std::vector<int> varsLeft; // сколько переменных осталось в каждой клозе
         
         std::vector<short int> usedVars; // -1, 0, 1 - задействована ли переменная
         std::stack<int> single; // какие клозы остались с одним значением
         std::stack<Var> lastVar; // стек присвоенных переменных
-        // первый int для переменной
-        // второй int: 0 если нельзя поменять знак, 1 если можно
         
         int numZeroClauses; // сколько клауз ещё удов (для быстрого ответа)
         int solutionExist;
 
-        bool addVar(Var x); // присваиваю переменной значение (ОДНОЙ), внутри обновляю все вектора и тд и смотрю на противоречия
-        void backtrack(); // удаляю значение переменной, меняю все вектора и тд
-        Var getNextVar(); // находит след переменные для присвоения (внутри проверка на непустой список единичных, иначе тупо ищу)
-        Var getNextVarJWH(); // то же самое, что и выше, но с эвристикой
         int findNotUsedVar(const Clause& curr);
+
     public:
         SATSolver();
+        virtual ~SATSolver() = default;
         bool dimacs(std::string& nameFile);
         bool solve();
         Solution getSolution();
+
+        virtual void initHeuristic() {}
+        virtual bool addVar(Var x); // присваиваю переменной значение
+        virtual void backtrack(); // удаляю значение переменной
+        virtual Var getNextVar() = 0; // находит след переменные для присвоения
 };
 
+class SATSolverNaive : public SATSolver {
+    public:
+        Var getNextVar() override;
+};
+
+class SATSolverJWH : public SATSolver {
+    private:
+        std::vector<double> pows; // 2^(-i)
+        std::vector<double> weightPos;
+        std::vector<double> weightNeg;
+
+    public:
+        SATSolverJWH();
+        void initHeuristic() override;
+        bool addVar(Var x) override;
+        void backtrack() override;
+        Var getNextVar() override;
+};
