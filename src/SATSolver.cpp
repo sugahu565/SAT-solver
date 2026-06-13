@@ -76,17 +76,28 @@ bool SATSolver::dimacs(std::string& nameFile) {
 }
 
 bool SATSolverNaive::solve() {
+    if (numZeroClauses == 0) {
+        solutionExist = 1;
+        return true;
+    }
+
     Var curVar = getNextVar();
+    if (curVar.var == 0)
+        return false;
+
     do {
         bool ok = addVar(curVar);
 
         if (ok) {
             if (numZeroClauses != 0) {
                 curVar = getNextVar();
-                continue;
+                if (curVar.var != 0)
+                    continue;
+                curVar = lastVar.top();
+            } else {
+                solutionExist = 1;
+                return true;
             }
-            solutionExist = 1;
-            return true;
         }
 
         backtrack();
@@ -106,9 +117,7 @@ bool SATSolverNaive::solve() {
         // откатилась
         curVar.canChange = 0;
         curVar.var = -curVar.var;
-    } while (!lastVar.empty());
-
-    return false;
+    } while (true);
 }
 
 bool SATSolver::addVar(Var x) {
@@ -124,6 +133,7 @@ bool SATSolver::addVar(Var x) {
         trueClauses = &varsInfo[curNum].negOccur;
         otherClauses = &varsInfo[curNum].posOccur;
     }
+    usedVars[curNum] = pos ? 1 : -1;
     for (auto c: *trueClauses) {
         clauseIsTrue[c]++;
         if (clauseIsTrue[c] == 1)
@@ -133,12 +143,11 @@ bool SATSolver::addVar(Var x) {
     for (auto c: *otherClauses) {
         varsLeft[c]--;
         if (!clauseIsTrue[c] && varsLeft[c] == 1)
-            single.push(findNotUsedVar(clauses[c]));
+            single.push(c);
         else if (!clauseIsTrue[c] && varsLeft[c] == 0)
             flag = 0;
     }
     lastVar.push(x);
-    usedVars[curNum] = pos ? 1 : -1;
     return flag;
 }
 
@@ -158,6 +167,7 @@ void SATSolver::backtrack() {
         trueClauses = &varsInfo[curNum].negOccur;
         otherClauses = &varsInfo[curNum].posOccur;
     }
+    usedVars[curNum] = 0;
     for (auto c: *trueClauses) {
         clauseIsTrue[c]--;
         if (clauseIsTrue[c] == 0)
@@ -167,7 +177,6 @@ void SATSolver::backtrack() {
     for (auto c: *otherClauses) {
         varsLeft[c]++;
     }
-    usedVars[curNum] = 0;
     lastVar.pop();
 }
 
@@ -183,12 +192,13 @@ int SATSolver::findNotUsedVar(const Clause& curr) {
 Var SATSolverNaive::getNextVar() {
     Var needReturn{0, 0};
     while (!single.empty()) {
-        if (usedVars[abs(single.top())] != 0) {
-            single.pop();
-        } else {
-            needReturn.var = single.top();
+        int clause = single.top();
+        single.pop();
+        if (!clauseIsTrue[clause] && varsLeft[clause] == 1) {
+            needReturn.var = findNotUsedVar(clauses[clause]);
+            if (needReturn.var == 0)
+                continue;
             needReturn.canChange = 0;
-            single.pop();
             return needReturn;
         }
     }
@@ -199,7 +209,7 @@ Var SATSolverNaive::getNextVar() {
             return needReturn;
         }
     }
-    needReturn.var = -1; // в теории, до сюда не дойдёт
+    needReturn.var = 0;
     return needReturn;
 }
 
@@ -213,17 +223,28 @@ SATSolverJWH::SATSolverJWH() : SATSolver() {
 bool SATSolverJWH::solve() {
     initHeuristic();
 
+    if (numZeroClauses == 0) {
+        solutionExist = 1;
+        return true;
+    }
+
     Var curVar = getNextVar();
+    if (curVar.var == 0)
+        return false;
+
     do {
         bool ok = addVar(curVar);
 
         if (ok) {
             if (numZeroClauses != 0) {
                 curVar = getNextVar();
-                continue;
+                if (curVar.var != 0)
+                    continue;
+                curVar = lastVar.top();
+            } else {
+                solutionExist = 1;
+                return true;
             }
-            solutionExist = 1;
-            return true;
         }
 
         backtrack();
@@ -243,9 +264,7 @@ bool SATSolverJWH::solve() {
         // откатилась
         curVar.canChange = 0;
         curVar.var = -curVar.var;
-    } while (!lastVar.empty());
-
-    return false;
+    } while (true);
 }
 
 void SATSolverJWH::initHeuristic() {
@@ -277,6 +296,7 @@ bool SATSolverJWH::addVar(Var x) {
         trueClauses = &varsInfo[curNum].negOccur;
         otherClauses = &varsInfo[curNum].posOccur;
     }
+    usedVars[curNum] = pos ? 1 : -1;
 
     for (auto c: *trueClauses) {
         clauseIsTrue[c]++;
@@ -316,12 +336,11 @@ bool SATSolverJWH::addVar(Var x) {
         }
 
         if (!clauseIsTrue[c] && varsLeft[c] == 1)
-            single.push(findNotUsedVar(clauses[c]));
+            single.push(c);
         else if (!clauseIsTrue[c] && varsLeft[c] == 0)
             flag = 0;
     }
     lastVar.push(x);
-    usedVars[curNum] = pos ? 1 : -1;
     return flag;
 }
 
@@ -341,6 +360,7 @@ void SATSolverJWH::backtrack() {
         trueClauses = &varsInfo[curNum].negOccur;
         otherClauses = &varsInfo[curNum].posOccur;
     }
+    usedVars[curNum] = 0;
 
     for (auto c: *trueClauses) {
         clauseIsTrue[c]--;
@@ -379,19 +399,19 @@ void SATSolverJWH::backtrack() {
             }
         }
     }
-    usedVars[curNum] = 0;
     lastVar.pop();
 }
 
 Var SATSolverJWH::getNextVar() {
     Var needReturn{0, 0};
     while (!single.empty()) {
-        if (usedVars[abs(single.top())] != 0) {
-            single.pop();
-        } else {
-            needReturn.var = single.top();
+        int clause = single.top();
+        single.pop();
+        if (!clauseIsTrue[clause] && varsLeft[clause] == 1) {
+            needReturn.var = findNotUsedVar(clauses[clause]);
+            if (needReturn.var == 0)
+                continue;
             needReturn.canChange = 0;
-            single.pop();
             return needReturn;
         }
     }
@@ -415,6 +435,6 @@ Var SATSolverJWH::getNextVar() {
         return needReturn;
     }
 
-    needReturn.var = -1;
+    needReturn.var = 0;
     return needReturn;
 }

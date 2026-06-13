@@ -20,7 +20,7 @@ class SATSolver { // базовый класс для решения одной 
         std::vector<int> varsLeft; // сколько переменных осталось в каждой клозе
         
         std::vector<short int> usedVars; // -1, 0, 1 - задействована ли переменная
-        std::stack<int> single; // какие клозы остались с одним значением
+        std::stack<int> single; // индексы клауз, которые могли стать единичными
         std::stack<Var> lastVar; // стек присвоенных переменных
         
         int numZeroClauses; // сколько клауз ещё удов (для быстрого ответа)
@@ -64,4 +64,3 @@ class SATSolverJWH : public SATSolver {
         SATSolverJWH();
         bool solve() override;
 };
-
