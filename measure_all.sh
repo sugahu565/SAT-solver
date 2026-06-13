@@ -54,6 +54,15 @@ if [ ! -e "${CNF_FILES[0]}" ]; then
     exit 1
 fi
 
+NAIVE_HEURISTIC=$(./build/bin/solver --print-heuristic)
+JWH_HEURISTIC=$(./build/bin/solver -jwh --print-heuristic)
+if [ "$NAIVE_HEURISTIC" != "naive" ] || [ "$JWH_HEURISTIC" != "jwh" ]; then
+    echo "Ошибка: исполняемый файл не выбрал ожидаемые эвристики."
+    echo "naive: $NAIVE_HEURISTIC, jwh: $JWH_HEURISTIC"
+    exit 1
+fi
+echo "Проверка эвристик: naive и jwh выбраны корректно."
+
 # --- 3. ОСНОВНОЙ ЦИКЛ ЗАМЕРОВ ---
 mkdir -p results
 echo "=== Запуск бенчмарка: $DIR_NAME (30 прогонов всей папки) ==="
@@ -61,9 +70,7 @@ echo "=== Запуск бенчмарка: $DIR_NAME (30 прогонов все
 hyperfine --warmup 1 --runs 30 \
     --export-markdown "results/bench_results_${DIR_NAME}.md" \
     --export-json "results/bench_results_${DIR_NAME}.json" \
-    "for f in \"$DIR\"/*.cnf; do ./build/bin/solver \"\$f\"; done" \
-    "for f in \"$DIR\"/*.cnf; do ./build/bin/solver \"\$f\" -jwh; done"
+    "./build/bin/solver \"$DIR\"/*.cnf > /dev/null" \
+    "./build/bin/solver -jwh \"$DIR\"/*.cnf > /dev/null"
 
 echo "=== Замеры завершены! ==="
-
-

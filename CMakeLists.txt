@@ -11,6 +11,11 @@ add_subdirectory(src)
 
 enable_testing()
 
+add_test(NAME heuristic_naive COMMAND solver --print-heuristic)
+set_tests_properties(heuristic_naive PROPERTIES PASS_REGULAR_EXPRESSION "^naive")
+add_test(NAME heuristic_jwh COMMAND solver -jwh --print-heuristic)
+set_tests_properties(heuristic_jwh PROPERTIES PASS_REGULAR_EXPRESSION "^jwh")
+
 file(GLOB TEST_FILES "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cnf")
 
 foreach(TEST_FILE IN LISTS TEST_FILES)

@@ -39,6 +39,7 @@ class SATSolver { // базовый класс для решения одной 
         Solution getSolution();
 
         virtual bool solve() = 0; // Чисто виртуальный метод для запуска решателя
+        virtual const char* heuristicName() const = 0;
 };
 
 class SATSolverNaive : public SATSolver {
@@ -47,6 +48,7 @@ class SATSolverNaive : public SATSolver {
 
     public:
         bool solve() override;
+        const char* heuristicName() const override { return "naive"; }
 };
 
 class SATSolverJWH : public SATSolver {
@@ -63,4 +65,5 @@ class SATSolverJWH : public SATSolver {
     public:
         SATSolverJWH();
         bool solve() override;
+        const char* heuristicName() const override { return "jwh"; }
 };
