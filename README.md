@@ -30,6 +30,11 @@ make lint
 clang-format --dry-run --Werror src/*.cpp src/*.hpp
 ```
 
+Форматирование исходников:
+```bash
+make format
+```
+
 Очистка папки build:
 ```bash
 make clean 
@@ -43,6 +48,11 @@ make clean
 
 ```bash
 ./measure_all.sh satBenchmarks/uf50-218
+```
+
+Запуск замеров для всех наборов, перечисленных в `satBenchmarks/README.md`:
+```bash
+make bench
 ```
 
 Перед запуском соберите solver командой `make build` и установите `hyperfine`.

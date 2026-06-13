@@ -1,20 +1,32 @@
-BUILD_DIR = build
-CXX = g++
-CMAKE = cmake
-
 all: build lint test
 
 build:
-	$(CMAKE) . -B $(BUILD_DIR) -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Release
-	$(CMAKE) --build $(BUILD_DIR)
+	cmake . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Release
+	cmake --build build
 
-lint:
-	run-clang-tidy -p $(BUILD_DIR)
+format:
+	clang-format -i src/*.cpp src/*.hpp
 
-test:
-	ctest --test-dir $(BUILD_DIR) --output-on-failure
+lint: build
+	run-clang-tidy -p build
+
+test: build
+	ctest --test-dir build --output-on-failure
+
+bench:
+	@set -e; \
+	for dir in \
+		satBenchmarks/uf50-218 \
+		satBenchmarks/uf75-325 \
+		satBenchmarks/uuf50-218/UUF50.218.1000 \
+		satBenchmarks/uuf75-325 \
+		satBenchmarks/flat50-115 \
+		satBenchmarks/pigeon-hole; do \
+		echo "=== Бенчмарк: $$dir ==="; \
+		./measure_all.sh "$$dir"; \
+	done
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf build
 
-.PHONY: build lint test clean
+.PHONY: all build format lint test bench clean
