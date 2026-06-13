@@ -75,9 +75,7 @@ bool SATSolver::dimacs(std::string& nameFile) {
     return true;
 }
 
-bool SATSolver::solve() {
-    initHeuristic();
-
+bool SATSolverNaive::solve() {
     Var curVar = getNextVar();
     do {
         bool ok = addVar(curVar);
@@ -210,6 +208,44 @@ SATSolverJWH::SATSolverJWH() : SATSolver() {
     pows = std::vector<double>(128);
     for (int i = 0; i < 128; i++)
         pows[i] = std::pow(2.0, -i);
+}
+
+bool SATSolverJWH::solve() {
+    initHeuristic();
+
+    Var curVar = getNextVar();
+    do {
+        bool ok = addVar(curVar);
+
+        if (ok) {
+            if (numZeroClauses != 0) {
+                curVar = getNextVar();
+                continue;
+            }
+            solutionExist = 1;
+            return true;
+        }
+
+        backtrack();
+
+        if (curVar.canChange) {
+            curVar.canChange = 0;
+            curVar.var = -curVar.var;
+            continue;
+        }
+
+        while (!curVar.canChange) { // откат до той переменной, которую можно поменять
+            if (lastVar.empty())
+                return false;
+            curVar = lastVar.top();
+            backtrack();
+        }
+        // откатилась
+        curVar.canChange = 0;
+        curVar.var = -curVar.var;
+    } while (!lastVar.empty());
+
+    return false;
 }
 
 void SATSolverJWH::initHeuristic() {

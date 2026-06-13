@@ -28,22 +28,25 @@ class SATSolver { // базовый класс для решения одной 
 
         int findNotUsedVar(const Clause& curr);
 
+        // Базовые реализации (невиртуальные для инлайнинга)
+        bool addVar(Var x); 
+        void backtrack();   
+
     public:
         SATSolver();
         virtual ~SATSolver() = default;
         bool dimacs(std::string& nameFile);
-        bool solve();
         Solution getSolution();
 
-        virtual void initHeuristic() {}
-        virtual bool addVar(Var x); // присваиваю переменной значение
-        virtual void backtrack(); // удаляю значение переменной
-        virtual Var getNextVar() = 0; // находит след переменные для присвоения
+        virtual bool solve() = 0; // Чисто виртуальный метод для запуска решателя
 };
 
 class SATSolverNaive : public SATSolver {
+    private:
+        Var getNextVar();
+
     public:
-        Var getNextVar() override;
+        bool solve() override;
 };
 
 class SATSolverJWH : public SATSolver {
@@ -52,10 +55,13 @@ class SATSolverJWH : public SATSolver {
         std::vector<double> weightPos;
         std::vector<double> weightNeg;
 
+        void initHeuristic();
+        bool addVar(Var x); // Перекрывает базовый метод (Shadowing)
+        void backtrack();   // Перекрывает базовый метод
+        Var getNextVar();
+
     public:
         SATSolverJWH();
-        void initHeuristic() override;
-        bool addVar(Var x) override;
-        void backtrack() override;
-        Var getNextVar() override;
+        bool solve() override;
 };
+
