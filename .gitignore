@@ -22,6 +22,7 @@ resultsJWH/
 *.aux
 *.pdf
 !report.pdf
+!report.tex
 report2.
 
 # CLion

@@ -13,9 +13,9 @@ jobs:
       - name: Install tools
         run: dnf install -y clang-tools-extra cmake gcc-c++ findutils
       - name: Check format
-        run: find . -path ./build -prune -o -type f -name '*.[ch]' -print | xargs clang-format --style=file --dry-run -Werror
+        run: git ls-files '*.cpp' '*.hpp' | xargs -r clang-format --style=file --dry-run -Werror
       - name: Configure
-        run: cmake . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        run: cmake . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: cmake --build build
       - name: Lint
