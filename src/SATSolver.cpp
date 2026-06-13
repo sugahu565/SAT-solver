@@ -5,27 +5,30 @@
 #include <string>
 #include <vector>
 
-SATSolver::SATSolver() {
+SATSolver::SATSolver()
+{
     numVars = 0;
     numClauses = 0;
     numZeroClauses = 0;
     solutionExist = 0;
 }
 
-Solution SATSolver::getSolution() const {
+Solution SATSolver::getSolution() const
+{
     Solution s;
     s.solutionExist = solutionExist;
-    // Dummy return, actual variable assignment extraction is omitted 
+    // Dummy return, actual variable assignment extraction is omitted
     // unless needed by another part of the system.
     return s;
 }
 
-bool SATSolver::dimacs(std::string& nameFile) {
+bool SATSolver::dimacs(std::string& nameFile)
+{
     std::ifstream file(nameFile);
     std::string comment;
 
     file >> std::ws;
-    
+
     while (file.peek() == 'c') {
         std::getline(file, comment);
         file >> std::ws;
@@ -75,7 +78,8 @@ bool SATSolver::dimacs(std::string& nameFile) {
     return true;
 }
 
-bool SATSolverNaive::solve() {
+bool SATSolverNaive::solve()
+{
     if (numZeroClauses == 0) {
         solutionExist = 1;
         return true;
@@ -120,7 +124,8 @@ bool SATSolverNaive::solve() {
     } while (true);
 }
 
-bool SATSolver::addVar(Var x) {
+bool SATSolver::addVar(Var x)
+{
     int curNum = abs(x.var);
     bool pos = x.var > 0;
     int flag = 1;
@@ -134,13 +139,13 @@ bool SATSolver::addVar(Var x) {
         otherClauses = &varsInfo[curNum].posOccur;
     }
     usedVars[curNum] = pos ? 1 : -1;
-    for (auto c: *trueClauses) {
+    for (auto c : *trueClauses) {
         clauseIsTrue[c]++;
         if (clauseIsTrue[c] == 1)
             numZeroClauses--;
         varsLeft[c]--;
     }
-    for (auto c: *otherClauses) {
+    for (auto c : *otherClauses) {
         varsLeft[c]--;
         if (!clauseIsTrue[c] && varsLeft[c] == 1)
             single.push(c);
@@ -151,7 +156,8 @@ bool SATSolver::addVar(Var x) {
     return flag;
 }
 
-void SATSolver::backtrack() {
+void SATSolver::backtrack()
+{
     while (!single.empty())
         single.pop();
     // Симметрично addVar
@@ -168,20 +174,21 @@ void SATSolver::backtrack() {
         otherClauses = &varsInfo[curNum].posOccur;
     }
     usedVars[curNum] = 0;
-    for (auto c: *trueClauses) {
+    for (auto c : *trueClauses) {
         clauseIsTrue[c]--;
         if (clauseIsTrue[c] == 0)
             numZeroClauses++;
         varsLeft[c]++;
     }
-    for (auto c: *otherClauses) {
+    for (auto c : *otherClauses) {
         varsLeft[c]++;
     }
     lastVar.pop();
 }
 
-int SATSolver::findNotUsedVar(const Clause& curr) {
-    for (auto c: curr.vars) {
+int SATSolver::findNotUsedVar(const Clause& curr)
+{
+    for (auto c : curr.vars) {
         if (usedVars[abs(c)] == 0)
             return c;
     }
@@ -189,8 +196,9 @@ int SATSolver::findNotUsedVar(const Clause& curr) {
 }
 
 // --- SATSolverNaive ---
-Var SATSolverNaive::getNextVar() {
-    Var needReturn{0, 0};
+Var SATSolverNaive::getNextVar()
+{
+    Var needReturn { 0, 0 };
     while (!single.empty()) {
         int clause = single.top();
         single.pop();
@@ -214,13 +222,16 @@ Var SATSolverNaive::getNextVar() {
 }
 
 // --- SATSolverJWH ---
-SATSolverJWH::SATSolverJWH() : SATSolver() {
+SATSolverJWH::SATSolverJWH()
+    : SATSolver()
+{
     pows = std::vector<double>(128);
     for (int i = 0; i < 128; i++)
         pows[i] = std::pow(2.0, -i);
 }
 
-bool SATSolverJWH::solve() {
+bool SATSolverJWH::solve()
+{
     initHeuristic();
 
     if (numZeroClauses == 0) {
@@ -267,7 +278,8 @@ bool SATSolverJWH::solve() {
     } while (true);
 }
 
-void SATSolverJWH::initHeuristic() {
+void SATSolverJWH::initHeuristic()
+{
     weightPos.assign(numVars + 1, 0.0);
     weightNeg.assign(numVars + 1, 0.0);
     for (int i = 1; i <= numVars; ++i) {
@@ -282,7 +294,8 @@ void SATSolverJWH::initHeuristic() {
     }
 }
 
-bool SATSolverJWH::addVar(Var x) {
+bool SATSolverJWH::addVar(Var x)
+{
     int curNum = abs(x.var);
     bool pos = x.var > 0;
     int flag = 1;
@@ -298,7 +311,7 @@ bool SATSolverJWH::addVar(Var x) {
     }
     usedVars[curNum] = pos ? 1 : -1;
 
-    for (auto c: *trueClauses) {
+    for (auto c : *trueClauses) {
         clauseIsTrue[c]++;
         if (clauseIsTrue[c] == 1) {
             numZeroClauses--;
@@ -308,28 +321,33 @@ bool SATSolverJWH::addVar(Var x) {
             for (int vInC : clauses[c].vars) {
                 int absV = abs(vInC);
                 if (usedVars[absV] == 0) {
-                    if (vInC > 0) weightPos[absV] -= w;
-                    else          weightNeg[absV] -= w;
+                    if (vInC > 0)
+                        weightPos[absV] -= w;
+                    else
+                        weightNeg[absV] -= w;
                 }
             }
         }
         varsLeft[c]--;
     }
 
-    for (auto c: *otherClauses) {
+    for (auto c : *otherClauses) {
         varsLeft[c]--;
         int len = varsLeft[c];
 
         if (clauseIsTrue[c] == 0) {
             // Клауза стала короче, увеличиваем её вес для свободных переменных
             double diff = 0.0;
-            if (len < 127) diff = pows[len] - pows[len + 1];
+            if (len < 127)
+                diff = pows[len] - pows[len + 1];
             if (diff > 0.0) {
                 for (int vInC : clauses[c].vars) {
                     int absV = abs(vInC);
                     if (usedVars[absV] == 0) {
-                        if (vInC > 0) weightPos[absV] += diff;
-                        else          weightNeg[absV] += diff;
+                        if (vInC > 0)
+                            weightPos[absV] += diff;
+                        else
+                            weightNeg[absV] += diff;
                     }
                 }
             }
@@ -344,7 +362,8 @@ bool SATSolverJWH::addVar(Var x) {
     return flag;
 }
 
-void SATSolverJWH::backtrack() {
+void SATSolverJWH::backtrack()
+{
     while (!single.empty())
         single.pop();
 
@@ -362,7 +381,7 @@ void SATSolverJWH::backtrack() {
     }
     usedVars[curNum] = 0;
 
-    for (auto c: *trueClauses) {
+    for (auto c : *trueClauses) {
         clauseIsTrue[c]--;
         varsLeft[c]++;
         if (clauseIsTrue[c] == 0) {
@@ -373,27 +392,32 @@ void SATSolverJWH::backtrack() {
             for (int vInC : clauses[c].vars) {
                 int absV = abs(vInC);
                 if (usedVars[absV] == 0) {
-                    if (vInC > 0) weightPos[absV] += w;
-                    else          weightNeg[absV] += w;
+                    if (vInC > 0)
+                        weightPos[absV] += w;
+                    else
+                        weightNeg[absV] += w;
                 }
             }
         }
     }
 
-    for (auto c: *otherClauses) {
+    for (auto c : *otherClauses) {
         int len = varsLeft[c];
         varsLeft[c]++;
 
         if (clauseIsTrue[c] == 0) {
             // Клауза стала длиннее, уменьшаем её вес
             double diff = 0.0;
-            if (len < 127) diff = pows[len] - pows[len + 1];
+            if (len < 127)
+                diff = pows[len] - pows[len + 1];
             if (diff > 0.0) {
                 for (int vInC : clauses[c].vars) {
                     int absV = abs(vInC);
                     if (usedVars[absV] == 0) {
-                        if (vInC > 0) weightPos[absV] -= diff;
-                        else          weightNeg[absV] -= diff;
+                        if (vInC > 0)
+                            weightPos[absV] -= diff;
+                        else
+                            weightNeg[absV] -= diff;
                     }
                 }
             }
@@ -402,8 +426,9 @@ void SATSolverJWH::backtrack() {
     lastVar.pop();
 }
 
-Var SATSolverJWH::getNextVar() {
-    Var needReturn{0, 0};
+Var SATSolverJWH::getNextVar()
+{
+    Var needReturn { 0, 0 };
     while (!single.empty()) {
         int clause = single.top();
         single.pop();

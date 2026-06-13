@@ -1,16 +1,18 @@
+#include "SATSolver.hpp"
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
-#include "SATSolver.hpp"
 
-std::unique_ptr<SATSolver> makeSolver(bool useJWH) {
+std::unique_ptr<SATSolver> makeSolver(bool useJWH)
+{
     if (useJWH)
         return std::make_unique<SATSolverJWH>();
     return std::make_unique<SATSolverNaive>();
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     bool useJWH = false;
     bool printHeuristic = false;
     std::vector<std::string> files;

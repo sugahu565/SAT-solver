@@ -1,7 +1,7 @@
 #pragma once
-#include<vector>
+#include <vector>
 
-struct Solution { //для вывода ответа
+struct Solution { // для вывода ответа
     bool solutionExist = false;
     std::vector<int> variables;
 };
@@ -23,4 +23,3 @@ struct Var {
     int var;
     int canChange;
 };
-
